@@ -67,10 +67,15 @@ public class SearchEventsHandler : ISearchEventsHandler
             }
             await _db.SaveChangesAsync();
 
-            events = tmEvents.Select(e => new EventDto(
-                e.Id, e.TicketmasterEventId, e.Title, e.Artist,
-                e.Venue, e.City, e.EventDate, e.TicketmasterUrl,
-                e.ImageUrl, e.Genre)).ToList();
+            var tmIds = tmEvents.Select(e => e.TicketmasterEventId).ToList();
+            events = await _db.Events
+                .Where(e => tmIds.Contains(e.TicketmasterEventId))
+                .OrderBy(e => e.EventDate)
+                .Select(e => new EventDto(
+                    e.Id, e.TicketmasterEventId, e.Title, e.Artist,
+                    e.Venue, e.City, e.EventDate, e.TicketmasterUrl,
+                    e.ImageUrl, e.Genre))
+                .ToListAsync();
             totalCount = events.Count;
         }
 
