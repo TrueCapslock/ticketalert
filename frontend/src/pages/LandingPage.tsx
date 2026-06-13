@@ -25,7 +25,7 @@ export default function LandingPage() {
               </Link>
               <Link
                 to="/register"
-                className="inline-flex items-center gap-2 bg-primary-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-400"
+                className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-500"
               >
                 Kom i gang
               </Link>
