@@ -2,6 +2,40 @@ param location string = 'norwayeast'
 param appName string = 'ticketalert'
 param environmentName string = 'prod'
 
+@secure()
+param adminPassword string
+
+@secure()
+param jwtKey string
+
+param jwtIssuer string = 'TicketAlert'
+param jwtAudience string = 'TicketAlert'
+
+@secure()
+param ticketmasterApiKey string
+
+@secure()
+param stripeSecretKey string
+
+@secure()
+param stripeWebhookSecret string
+
+param emailFromAddress string = 'noreply@ticketalert.no'
+
+@secure()
+param smtpHost string
+
+param smtpPort string = '587'
+
+@secure()
+param smtpUsername string
+
+@secure()
+param smtpPassword string
+
+param pricingPerWatchNok string = '19'
+param corsOrigins string = ''
+
 var postgresName = '${appName}-pg-${environmentName}'
 var appServicePlanName = '${appName}-plan-${environmentName}'
 var appServiceName = '${appName}-api-${environmentName}'
@@ -21,7 +55,7 @@ resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-preview'
   }
   properties: {
     administratorLogin: 'ticketalert_admin'
-    administratorLoginPassword: '@{adminPassword}'
+    administratorLoginPassword: adminPassword
     version: '16'
     storage: {
       storageSizeGB: 32
@@ -69,19 +103,19 @@ resource appService 'Microsoft.Web/sites@2023-01-01' = {
       netFrameworkVersion: 'v9.0'
       appSettings: [
         { name: 'ConnectionStrings__DefaultConnection', value: 'Host=${postgres.properties.fullyQualifiedDomainName};Database=ticketalert;Username=ticketalert_admin;Password=${adminPassword}' }
-        { name: 'Jwt__Key', value: '@{jwtKey}' }
-        { name: 'Jwt__Issuer', value: 'TicketAlert' }
-        { name: 'Jwt__Audience', value: 'TicketAlert' }
-        { name: 'Ticketmaster__ApiKey', value: '@{ticketmasterApiKey}' }
-        { name: 'Stripe__SecretKey', value: '@{stripeSecretKey}' }
-        { name: 'Stripe__WebhookSecret', value: '@{stripeWebhookSecret}' }
-        { name: 'Email__FromAddress', value: 'noreply@ticketalert.no' }
-        { name: 'Email__SmtpHost', value: '@{smtpHost}' }
-        { name: 'Email__SmtpPort', value: '587' }
-        { name: 'Email__Username', value: '@{smtpUsername}' }
-        { name: 'Email__Password', value: '@{smtpPassword}' }
-        { name: 'Pricing__PerWatchNok', value: '19' }
-        { name: 'Cors__Origins', value: 'https://${appServiceName}.azurewebsites.net' }
+        { name: 'Jwt__Key', value: jwtKey }
+        { name: 'Jwt__Issuer', value: jwtIssuer }
+        { name: 'Jwt__Audience', value: jwtAudience }
+        { name: 'Ticketmaster__ApiKey', value: ticketmasterApiKey }
+        { name: 'Stripe__SecretKey', value: stripeSecretKey }
+        { name: 'Stripe__WebhookSecret', value: stripeWebhookSecret }
+        { name: 'Email__FromAddress', value: emailFromAddress }
+        { name: 'Email__SmtpHost', value: smtpHost }
+        { name: 'Email__SmtpPort', value: smtpPort }
+        { name: 'Email__Username', value: smtpUsername }
+        { name: 'Email__Password', value: smtpPassword }
+        { name: 'Pricing__PerWatchNok', value: pricingPerWatchNok }
+        { name: 'Cors__Origins', value: corsOrigins != '' ? corsOrigins : 'https://${appServiceName}.azurewebsites.net' }
         { name: 'ASPNETCORE_ENVIRONMENT', value: 'Production' }
       ]
     }
