@@ -1,0 +1,14 @@
+{
+  "name": "ticketalert",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TicketAlert — Overvåk utsolgte konserter på Ticketmaster Norge",
+  "scripts": {
+    "dcc": "dcc",
+    "dcc:dev": "dcc --profile dev",
+    "dcc:ci": "dcc --profile ci"
+  },
+  "devDependencies": {
+    "@hartvig/developer-control-center": "^0.8.6"
+  }
+}
