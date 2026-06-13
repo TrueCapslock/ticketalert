@@ -53,27 +53,131 @@ public class TicketmasterService : ITicketmasterService
         return available;
     }
 
-    public async Task<(bool Available, int? TotalCount)> GetInventoryStatusAsync(string ticketmasterEventId)
+    public async Task<(bool Available, int? TotalCount)> GetInventoryStatusAsync(
+        string ticketmasterEventId,
+        string? ticketmasterUrl = null)
     {
+        if (string.IsNullOrEmpty(_apiKey))
+            return await CheckPublicTicketmasterPageAsync(ticketmasterUrl);
+
         try
         {
+            var eventId = Uri.EscapeDataString(ticketmasterEventId);
             var response = await _http.GetAsync(
-                $"https://app.ticketmaster.com/inventory-status/v1/events/{ticketmasterEventId}?apikey={_apiKey}");
+                $"https://app.ticketmaster.com/inventory-status/v1/availability?events={eventId}&apikey={_apiKey}");
 
-            if (!response.IsSuccessStatusCode) return (false, null);
+            if (!response.IsSuccessStatusCode)
+                return await CheckPublicTicketmasterPageAsync(ticketmasterUrl);
 
             var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
-            var available = body.TryGetProperty("available", out var avail) && avail.GetBoolean();
-            var totalCount = body.TryGetProperty("totalCount", out var count) ? (int?)count.GetInt32() : null;
+            return ParseInventoryStatus(body, ticketmasterEventId);
+        }
+        catch
+        {
+            return await CheckPublicTicketmasterPageAsync(ticketmasterUrl);
+        }
+    }
 
-            return (available, totalCount);
+    private async Task<(bool Available, int? TotalCount)> CheckPublicTicketmasterPageAsync(string? ticketmasterUrl)
+    {
+        if (string.IsNullOrWhiteSpace(ticketmasterUrl)) return (false, null);
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, ticketmasterUrl);
+            request.Headers.UserAgent.ParseAdd("Mozilla/5.0 TicketAlert/1.0");
+            request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+            var response = await _http.SendAsync(request);
+            if (!response.IsSuccessStatusCode) return (false, null);
+
+            var html = await response.Content.ReadAsStringAsync();
+            return (HasTicketAvailabilitySignal(html), null);
         }
         catch
         {
             return (false, null);
         }
     }
+
+    private static bool HasTicketAvailabilitySignal(string html)
+    {
+        var verifiedResaleSignals = new[]
+        {
+            "Verified Resale Ticket",
+            "Verified Resale Tickets",
+            "verified resale",
+            "resale tickets"
+        };
+
+        if (ContainsAny(html, verifiedResaleSignals)) return true;
+
+        var unavailableSignals = new[]
+        {
+            "sold out",
+            "utsolgt",
+            "no tickets available",
+            "currently no tickets",
+            "tickets are not currently available",
+            "ingen billetter tilgjengelig"
+        };
+
+        if (ContainsAny(html, unavailableSignals)) return false;
+
+        var availableSignals = new[]
+        {
+            "find tickets",
+            "buy tickets",
+            "select tickets",
+            "kjop billetter",
+            "kjøp billetter",
+            "finn billetter",
+            "\"availability\":\"https://schema.org/InStock\"",
+            "\"availability\": \"https://schema.org/InStock\""
+        };
+
+        return ContainsAny(html, availableSignals);
+    }
+
+    private static bool ContainsAny(string value, IEnumerable<string> signals) =>
+        signals.Any(signal => value.Contains(signal, StringComparison.OrdinalIgnoreCase));
+
+    private static (bool Available, int? TotalCount) ParseInventoryStatus(JsonElement body, string ticketmasterEventId)
+    {
+        if (body.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in body.EnumerateArray())
+            {
+                if (!item.TryGetProperty("eventId", out var id) ||
+                    string.Equals(id.GetString(), ticketmasterEventId, StringComparison.OrdinalIgnoreCase))
+                    return ParseInventoryStatusObject(item);
+            }
+
+            return (false, null);
+        }
+
+        return ParseInventoryStatusObject(body);
+    }
+
+    private static (bool Available, int? TotalCount) ParseInventoryStatusObject(JsonElement body)
+    {
+        if (body.TryGetProperty("available", out var available))
+        {
+            var totalCount = body.TryGetProperty("totalCount", out var count) ? (int?)count.GetInt32() : null;
+            return (available.GetBoolean(), totalCount);
+        }
+
+        var primaryAvailable = body.TryGetProperty("status", out var status) && IsAvailableStatus(status.GetString());
+        var resaleAvailable = body.TryGetProperty("resaleStatus", out var resaleStatus) &&
+            IsAvailableStatus(resaleStatus.GetString());
+
+        return (primaryAvailable || resaleAvailable, null);
+    }
+
+    private static bool IsAvailableStatus(string? status) =>
+        string.Equals(status, "TICKETS_AVAILABLE", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(status, "FEW_TICKETS_LEFT", StringComparison.OrdinalIgnoreCase);
 
     private IReadOnlyList<Event> ParseEvents(JsonElement body)
     {

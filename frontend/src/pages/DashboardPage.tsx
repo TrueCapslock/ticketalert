@@ -71,6 +71,14 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">
+        <p className="font-semibold">Hvor ofte sjekker vi?</p>
+        <p className="mt-1">
+          Vi sjekker oftere jo nærmere konserten er: samme dag hvert 5. minutt, under 7 dager hvert 15. minutt,
+          under 30 dager hver time, og ellers hver 6. time. Både ordinære billetter og Verified Resale Tickets teller.
+        </p>
+      </div>
+
       {isLoading && (
         <div className="flex justify-center py-12">
           <div className="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full" />

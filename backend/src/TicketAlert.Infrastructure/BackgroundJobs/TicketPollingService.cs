@@ -53,7 +53,8 @@ public class TicketPollingService : BackgroundService
 
                     var sw = System.Diagnostics.Stopwatch.StartNew();
                     var (available, totalCount) = await tm.GetInventoryStatusAsync(
-                        watch.Event.TicketmasterEventId);
+                        watch.Event.TicketmasterEventId,
+                        watch.Event.TicketmasterUrl);
                     sw.Stop();
 
                     var record = new ApiPollingRecord
