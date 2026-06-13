@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Bell, Search, LayoutDashboard, User, LogOut } from 'lucide-react';
+import { version } from '../../../package.json';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
@@ -55,6 +56,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <footer className="bg-white border-t border-gray-200 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
           <p>TicketAlert &mdash; Overvåkning av utsolgte konserter. Vi selger ikke billetter.</p>
+          <p className="mt-1 text-xs text-gray-400">v{version}</p>
         </div>
       </footer>
     </div>
