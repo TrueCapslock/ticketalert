@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "TicketAlert.Domain/1.0.0": {
+        "runtime": {
+          "TicketAlert.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TicketAlert.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

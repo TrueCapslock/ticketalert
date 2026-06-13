@@ -15,8 +15,8 @@ param(
     [string]$SmtpPassword = ""
 )
 
-if (-not $AdminPassword) { $AdminPassword = Read-Host "PostgreSQL admin password" -AsSecureString }
-if (-not $JwtKey) { $JwtKey = Read-Host "JWT signing key (min 32 tegn)" -AsSecureString }
+if (-not $AdminPassword) { $AdminPassword = Read-Host "PostgreSQL admin password" }
+if (-not $JwtKey) { $JwtKey = Read-Host "JWT signing key (min 32 tegn)" }
 
 $rgName = "rg-$AppName-$Environment"
 
@@ -26,8 +26,7 @@ Write-Host "  Lokasjon:      $Location" -ForegroundColor Gray
 Write-Host "  App:           $AppName-api-$Environment" -ForegroundColor Gray
 Write-Host ""
 
-# Sjekk at Azure CLI er logget inn
-az account show --output none
+az account show --output none 2>$null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Logger inn på Azure..." -ForegroundColor Yellow
     az login
@@ -39,8 +38,8 @@ az group create --name $rgName --location $Location --output none
 Write-Host "Deployer Bicep-skjema..." -ForegroundColor Green
 $bicepPath = Join-Path $PSScriptRoot "..\bicep\main.bicep"
 
-az deployment group create `
-    --resource-group $rgName `
+az deployment sub create `
+    --location $Location `
     --template-file $bicepPath `
     --parameters `
         appName=$AppName `
