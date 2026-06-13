@@ -2,8 +2,16 @@ using Microsoft.OpenApi.Models;
 using TicketAlert.Api.Extensions;
 using TicketAlert.Api.Middleware;
 
-var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
-if (File.Exists(envPath))
+var dir = Directory.GetCurrentDirectory();
+string? envPath = null;
+while (dir != null)
+{
+    var candidate = Path.Combine(dir, ".env");
+    if (File.Exists(candidate)) { envPath = candidate; break; }
+    dir = Path.GetDirectoryName(dir);
+}
+
+if (envPath != null)
 {
     DotNetEnv.Env.Load(envPath);
     Console.WriteLine($"Loaded .env from {envPath}");
