@@ -45,6 +45,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRegisterUserHandler, RegisterUserHandler>();
         services.AddScoped<ILoginUserHandler, LoginUserHandler>();
         services.AddScoped<ISearchEventsHandler, SearchEventsHandler>();
+        services.AddScoped<IGetEventHandler, GetEventHandler>();
         services.AddScoped<ICreateWatchHandler, CreateWatchHandler>();
         services.AddScoped<IGetUserWatchesHandler, GetUserWatchesHandler>();
         services.AddScoped<ICancelWatchHandler, CancelWatchHandler>();
