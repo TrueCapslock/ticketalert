@@ -2,17 +2,24 @@ param appServiceName string
 param appServicePlanName string
 param location string
 param postgresHost string
+@secure()
 param adminPassword string
 param jwtKey string
 param jwtIssuer string
 param jwtAudience string
+@secure()
 param ticketmasterApiKey string
+
+@secure()
 param stripeSecretKey string
+
+@secure()
 param stripeWebhookSecret string
 param emailFromAddress string
 param smtpHost string
 param smtpPort string
 param smtpUsername string
+@secure()
 param smtpPassword string
 param pricingPerWatchNok string
 param corsOrigins string
@@ -37,7 +44,6 @@ resource appService 'Microsoft.Web/sites@2023-01-01' = {
     httpsOnly: true
     siteConfig: {
       alwaysOn: true
-      netFrameworkVersion: 'v9.0'
       appSettings: [
         { name: 'ConnectionStrings__DefaultConnection', value: 'Host=${postgresHost};Database=ticketalert;Username=ticketalert_admin;Password=${adminPassword}' }
         { name: 'Jwt__Key', value: jwtKey }
