@@ -40,6 +40,8 @@ public class ExceptionMiddleware
         {
             _logger.LogError(ex, "Unhandled exception");
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.Headers["Access-Control-Allow-Origin"] = context.Request.Headers.Origin.FirstOrDefault() ?? "*";
+            context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
             await WriteErrorAsync(context, "Internal Server Error", "An unexpected error occurred.");
         }
     }

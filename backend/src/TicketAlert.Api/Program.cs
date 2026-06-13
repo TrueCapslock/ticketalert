@@ -70,6 +70,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseCors("Frontend");
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<RateLimitingMiddleware>();
 
@@ -78,8 +79,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

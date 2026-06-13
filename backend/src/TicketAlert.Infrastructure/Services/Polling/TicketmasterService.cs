@@ -14,13 +14,15 @@ public class TicketmasterService : ITicketmasterService
     public TicketmasterService(HttpClient http, IConfiguration config)
     {
         _http = http;
-        _apiKey = config["Ticketmaster:ApiKey"]!;
+        _apiKey = config["Ticketmaster:ApiKey"] ?? "";
     }
 
     public async Task<IReadOnlyList<Event>> SearchEventsAsync(
         string? keyword, string? artist, string? city,
         int page, int pageSize)
     {
+        if (string.IsNullOrEmpty(_apiKey)) return Array.Empty<Event>();
+
         var query = $"apikey={_apiKey}&size={pageSize}&page={page - 1}";
         if (!string.IsNullOrEmpty(keyword)) query += $"&keyword={Uri.EscapeDataString(keyword)}";
         if (!string.IsNullOrEmpty(artist)) query += $"&attractionId={Uri.EscapeDataString(artist)}";
