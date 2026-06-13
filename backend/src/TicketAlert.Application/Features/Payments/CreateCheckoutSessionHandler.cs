@@ -36,13 +36,13 @@ public class CreateCheckoutSessionHandler : ICreateCheckoutSessionHandler
             ExpiresAt = ev.EventDate
         };
 
-        _db.Watches.Add(watch);
-        await _db.SaveChangesAsync();
-
         var price = await _payment.GetPriceInNokAsync();
         var sessionUrl = await _payment.CreateCheckoutSessionAsync(
             userId, watch.Id, price, "nok",
             request.SuccessUrl, request.CancelUrl);
+
+        _db.Watches.Add(watch);
+        await _db.SaveChangesAsync();
 
         return new CheckoutResponse(sessionUrl, string.Empty);
     }

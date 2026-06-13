@@ -22,5 +22,15 @@ public record WatchDto(
     string Status,
     DateTime CreatedAt,
     DateTime ExpiresAt,
-    DateTime? TriggeredAt
+    DateTime? TriggeredAt,
+    IReadOnlyList<ApiPollingHistoryDto> ApiPollingHistory
+);
+
+public record ApiPollingHistoryDto(
+    Guid Id,
+    bool TicketsAvailable,
+    int? TotalCount,
+    int? HttpStatusCode,
+    long DurationMs,
+    DateTime PolledAt
 );

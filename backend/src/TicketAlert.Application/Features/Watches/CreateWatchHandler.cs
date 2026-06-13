@@ -64,5 +64,5 @@ public class CreateWatchHandler : ICreateWatchHandler
     private static WatchDto MapToDto(Watch watch, Event ev) => new(
         watch.Id, ev.Id, ev.Title, ev.Artist, ev.Venue,
         ev.EventDate, ev.TicketmasterUrl, watch.Status.ToString(),
-        watch.CreatedAt, watch.ExpiresAt, watch.TriggeredAt);
+        watch.CreatedAt, watch.ExpiresAt, watch.TriggeredAt, []);
 }

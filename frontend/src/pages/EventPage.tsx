@@ -1,10 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 import { eventService } from '../services/eventService';
 import { watchService } from '../services/watchService';
 import { paymentService } from '../services/paymentService';
 import { useAuth } from '../contexts/AuthContext';
 import { Calendar, MapPin, Music, ExternalLink, Bell, Loader2 } from 'lucide-react';
+
+type ApiError = {
+  detail?: string;
+  title?: string;
+};
 
 export default function EventPage() {
   const { id } = useParams<{ id: string }>();
@@ -45,6 +51,11 @@ export default function EventPage() {
     new Date(d).toLocaleDateString('nb-NO', {
       day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
+
+  const checkoutError = checkoutMutation.error as AxiosError<ApiError> | null;
+  const checkoutErrorMessage = checkoutError?.response?.data?.detail
+    ?? checkoutError?.response?.data?.title
+    ?? checkoutError?.message;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -120,6 +131,9 @@ export default function EventPage() {
                   )}
                   {checkoutMutation.isPending ? 'Venter...' : 'Overvåk denne konserten'}
                 </button>
+                {checkoutMutation.isError && checkoutErrorMessage && (
+                  <p className="mt-3 text-sm text-red-600">{checkoutErrorMessage}</p>
+                )}
               </div>
             )}
           </div>

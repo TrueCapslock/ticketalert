@@ -7,12 +7,14 @@ namespace TicketAlert.Infrastructure.Services.Payment;
 
 public class StripePaymentService : IPaymentService
 {
+    private readonly string? _secretKey;
     private readonly string _webhookSecret;
     private readonly decimal _priceNok;
 
     public StripePaymentService(IConfiguration config)
     {
-        StripeConfiguration.ApiKey = config["Stripe:SecretKey"];
+        _secretKey = config["Stripe:SecretKey"];
+        StripeConfiguration.ApiKey = _secretKey;
         _webhookSecret = config["Stripe:WebhookSecret"]!;
         _priceNok = decimal.TryParse(config["Pricing:PerWatchNok"], out var p) ? p : 19;
     }
@@ -21,6 +23,9 @@ public class StripePaymentService : IPaymentService
         Guid userId, Guid watchId, decimal amount, string currency,
         string successUrl, string cancelUrl)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+            throw new InvalidOperationException("Stripe checkout is not configured. Set Stripe__SecretKey in .env.");
+
         var options = new SessionCreateOptions
         {
             Mode = "payment",

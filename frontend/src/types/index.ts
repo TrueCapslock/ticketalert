@@ -50,6 +50,16 @@ export interface WatchDto {
   createdAt: string;
   expiresAt: string;
   triggeredAt: string | null;
+  apiPollingHistory: ApiPollingHistoryDto[];
+}
+
+export interface ApiPollingHistoryDto {
+  id: string;
+  ticketsAvailable: boolean;
+  totalCount: number | null;
+  httpStatusCode: number | null;
+  durationMs: number;
+  polledAt: string;
 }
 
 export type WatchStatus = 'Active' | 'Triggered' | 'Expired' | 'Cancelled';

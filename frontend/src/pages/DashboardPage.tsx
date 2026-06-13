@@ -31,6 +31,11 @@ export default function DashboardPage() {
       day: 'numeric', month: 'short', year: 'numeric',
     });
 
+  const formatDateTime = (d: string) =>
+    new Date(d).toLocaleString('nb-NO', {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
@@ -86,45 +91,89 @@ export default function DashboardPage() {
         {watches?.map((watch: WatchDto) => (
           <div
             key={watch.id}
-            className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 flex flex-col sm:flex-row items-start justify-between gap-4"
+            className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6"
           >
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">{watch.eventTitle}</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                {watch.artist && `${watch.artist} — `}
-                {watch.venue && `${watch.venue}, `}
-                {formatDate(watch.eventDate)}
-              </p>
-              <div className="flex items-center gap-3 mt-2">
-                <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[watch.status]}`}>
-                  {watch.status === 'Active' && 'Aktiv'}
-                  {watch.status === 'Triggered' && 'Varslet'}
-                  {watch.status === 'Expired' && 'Utløpt'}
-                  {watch.status === 'Cancelled' && 'Avbrutt'}
-                </span>
-                <span className="text-xs text-gray-500">
-                  Opprettet: {formatDate(watch.createdAt)}
-                </span>
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg">{watch.eventTitle}</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {watch.artist && `${watch.artist} — `}
+                  {watch.venue && `${watch.venue}, `}
+                  {formatDate(watch.eventDate)}
+                </p>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[watch.status]}`}>
+                    {watch.status === 'Active' && 'Aktiv'}
+                    {watch.status === 'Triggered' && 'Varslet'}
+                    {watch.status === 'Expired' && 'Utløpt'}
+                    {watch.status === 'Cancelled' && 'Avbrutt'}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    Opprettet: {formatDate(watch.createdAt)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={watch.ticketmasterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:text-primary-700 p-2"
+                  title="Åpne på Ticketmaster"
+                >
+                  <ExternalLink className="h-5 w-5" />
+                </a>
+                {watch.status === 'Active' && (
+                  <button
+                    onClick={() => cancelMutation.mutate(watch.id)}
+                    className="text-red-600 hover:text-red-700 p-2"
+                    title="Avbryt overvåkning"
+                  >
+                    <XCircle className="h-5 w-5" />
+                  </button>
+                )}
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <a
-                href={watch.ticketmasterUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600 hover:text-primary-700 p-2"
-                title="Åpne på Ticketmaster"
-              >
-                <ExternalLink className="h-5 w-5" />
-              </a>
-              {watch.status === 'Active' && (
-                <button
-                  onClick={() => cancelMutation.mutate(watch.id)}
-                  className="text-red-600 hover:text-red-700 p-2"
-                  title="Avbryt overvåkning"
-                >
-                  <XCircle className="h-5 w-5" />
-                </button>
+
+            <div className="mt-5 border-t border-gray-100 pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-gray-800">API polling history</h4>
+                <span className="text-xs text-gray-500">{watch.apiPollingHistory.length} rader</span>
+              </div>
+
+              {watch.apiPollingHistory.length === 0 ? (
+                <p className="text-sm text-gray-500">Ingen billettsjekker er kjørt for denne konserten ennå.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-100">
+                        <th className="py-2 pr-4 font-medium">Tidspunkt</th>
+                        <th className="py-2 pr-4 font-medium">Tilgjengelig</th>
+                        <th className="py-2 pr-4 font-medium">Antall</th>
+                        <th className="py-2 pr-4 font-medium">HTTP</th>
+                        <th className="py-2 font-medium">Varighet</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {watch.apiPollingHistory.map((row) => (
+                        <tr key={row.id} className="border-b border-gray-50 last:border-0">
+                          <td className="py-2 pr-4 whitespace-nowrap text-gray-700">{formatDateTime(row.polledAt)}</td>
+                          <td className="py-2 pr-4">
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                              row.ticketsAvailable ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {row.ticketsAvailable ? 'Ja' : 'Nei'}
+                            </span>
+                          </td>
+                          <td className="py-2 pr-4 text-gray-700">{row.totalCount ?? '-'}</td>
+                          <td className="py-2 pr-4 text-gray-700">{row.httpStatusCode ?? '-'}</td>
+                          <td className="py-2 text-gray-700">{row.durationMs} ms</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>
